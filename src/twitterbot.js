@@ -133,13 +133,13 @@ module.exports = class TwitterBot {
                         if (responseText.length > 140) {
                             responseText = responseText.substr(0, 139) + "…";
                         }
-
+                        var url="http://25.media.tumblr.com/tumblr_m939rf4gmO1qegk4go2_500.gif";
                         var imgId = null;
                         request({url: url, encoding: 'base64'}, function (err, res, body) {
                             if (!err && res.statusCode == 200) {
                                 // So as encoding set to null then request body became Buffer object
-                                var base64prefix = 'data:' + res.headers['content-type'] + ';base64,', image = body.toString('base64');     
-                                this._t.post('media/upload', {medai_data: image}, (err, data, response) => {
+                                var image = body;/*.toString('base64');*/
+                                this._t.post('media/upload', {media_data: image}, (err, data, response) => {
                                     if (err) {
                                         console.error('Response as upload media tweet error', err);
                                     } else {
