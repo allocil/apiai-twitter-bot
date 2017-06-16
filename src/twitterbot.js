@@ -3,6 +3,7 @@
 const apiai = require('apiai');
 const uuid = require('node-uuid');
 const Twit = require('twit');
+var request = require('request');
 
 module.exports = class TwitterBot {
 
@@ -133,14 +134,40 @@ module.exports = class TwitterBot {
                             responseText = responseText.substr(0, 139) + "…";
                         }
 
-                        console.log('Response as text message');
+                        var imgId = null;
+                        request({url: url, encoding: 'base64'}, function (err, res, body) {
+                            if (!err && res.statusCode == 200) {
+                                // So as encoding set to null then request body became Buffer object
+                                var base64prefix = 'data:' + res.headers['content-type'] + ';base64,', image = body.toString('base64');     
+                                this._t.post('media/upload', {medai_data: image}, (err, data, response) => {
+                                    if (err) {
+                                        console.error('Response as upload media tweet error', err);
+                                    } else {
+                                        console.log('Response as upload media tweet succeeded');
+                                        imgId = response.media_id_string;
+                                        console.log('Response as text message');
+                                        this._t.post('statuses/update', {status: responseText, in_reply_to_status_id: tweet.id_str, media_ids: [imgId]}, (err, data, response) => {
+                                            if (err) {
+                                                console.error('Response as tweet error', err);
+                                            } else {
+                                                console.log('Response as tweet succeeded');
+                                            }
+                                        });
+                                    }
+                                });       
+                            } else {
+                                console.log('Can not download image');
+                            }
+                        });
+
+                        /*console.log('Response as text message');
                         this._t.post('statuses/update', {status: responseText, in_reply_to_status_id: tweet.id_str}, (err, data, response) => {
                             if (err) {
                                 console.error('Response as tweet error', err);
                             } else {
                                 console.log('Response as tweet succeeded');
                             }
-                        });
+                });*/
 
                     } else {
                         console.log('Received empty result')
